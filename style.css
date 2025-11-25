@@ -1,0 +1,15 @@
+#searchBar {
+  padding: 6px;
+  border: navy solid 2px;
+  margin-top: 8px;
+  margin-right: 16px;
+  font-size: 17px;
+}
+
+main{
+  text-align: center;
+}
+h1{
+  padding-right: 10px;
+}
+
