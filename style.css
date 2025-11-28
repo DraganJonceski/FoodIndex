@@ -48,19 +48,22 @@ h1{
 }
 
 footer{
-  
+  margin-top: 40px;
+  padding: 20px;  
   text-align: center;
-  margin: 25px 0;
   font-size: 14px;
-  opacity: 0.8;
+  color: #444;
+  background: #f0f0f0;
+  border-top: 1px solid #ccc;
+  opacity: 0.8; /*looks different without opacity */
 }
 
 footer a{
-  color: inherit;
+  color: #0033cc; /*looks different with inherit property*/
   text-decoration: underline;
 }
 
 footer a:hover {
-  opacity: 1;
+  text-decoration: underline;
 }
 
