@@ -47,3 +47,20 @@ h1{
   color: #444;
 }
 
+footer{
+  
+  text-align: center;
+  margin: 25px 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+footer a{
+  color: inherit;
+  text-decoration: underline;
+}
+
+footer a:hover {
+  opacity: 1;
+}
+
