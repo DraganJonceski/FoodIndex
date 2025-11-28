@@ -1,6 +1,6 @@
-Food Calorie and Nutrition overview app
+Open Source 
+Food Calorie and Nutrition overview Website
 
-Next step is to connect it with a food nutrition dataset.
 
 [Live Site](https://draganjonceski.github.io/FoodIndex/)
 
