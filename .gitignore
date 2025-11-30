@@ -1,0 +1,21 @@
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node (if you ever add a build system)
+node_modules/
+
+# Build artifacts
+dist/
+out/
+
+# TSV datasets
+data/*.tsv
+*.tsv
+
+# VSCode
+.vscode/
