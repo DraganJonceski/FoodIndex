@@ -2,6 +2,8 @@
 // Food array
 let foods = [];
 
+const isGithubPages = location.hostname.endsWith("github.io");
+
 const imageByKeyword = {
     apple: "images/base/apple.avif",
     banana: "images/base/banana.avif",
@@ -72,8 +74,8 @@ function renderFoods(list){
     resultsDiv.appendChild(fragment);
 }
 
-// call function on page load
- loadTSV().then(async data => {
+// call function on page load 
+loadTSV().then(async data => {
     foods = data;  // keep dataset in memory
 
     // Fetch images for foods
@@ -85,8 +87,6 @@ function renderFoods(list){
     console.log("Loaded foods:", foods.length);
     renderFoods([]) // start empty
 });
-
-const isGithubPages = location.hostname.endsWith("github.io");
 
 // dataset function
 async function loadTSV(){
