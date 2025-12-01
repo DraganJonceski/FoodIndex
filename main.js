@@ -8,7 +8,7 @@ function renderFoods(list){
     resultsDiv.innerHTML = "";
 
     if(list.length === 0) {
-        resultsDiv.innerHTML = "<p>No results.<p>";
+        resultsDiv.innerHTML = "<p>No results.</p>";
         return;
     }
 
@@ -19,7 +19,9 @@ function renderFoods(list){
         const card = document.createElement("div");
         card.className = "food-card";
 
-        card.innerHTML = `<img src="images/${food.imageName}" alt="${food.name}">
+        card.innerHTML = `
+        <img src="${food.imageURL || 'images/placeholder.avif'}" 
+        alt="${food.name}">
         <h3>${food.name}</h3>
         <p><strong>${food.caloriesPer100g}</strong> kcal / 100g</p>
 
@@ -36,10 +38,17 @@ function renderFoods(list){
 }
 
 // call function on page load
-loadTSV().then(data => {
+loadTSV().then(async data => {
     foods = data;  // keep dataset in memory
-    console.log("Dataset loaded:", foods.length, "foods");
-    // DO NOT render here
+
+    // Fetch images for foods
+    for( const food of foods) {
+        food.imageURL= await fetchImageForFood(food.name);
+        console.log(food.imageURL);
+    }
+
+    console.log("Loaded foods:", foods.length);
+    renderFoods([]) // start empty
 });
 
 // dataset function
@@ -80,6 +89,65 @@ for (const line of lines) {
 }
 
 return parsedFoods;
+}
+
+//helper imageSearch
+function generateSearchTerm(foodName) {
+    return foodName
+        .toLowerCase()
+        .replace(/,.*/, "")       //remove everything after comma
+        .replace(/\(.*?\)/g, "")  //remove parentheses
+        .split(" ")              // split into words
+        .slice(0, 2)            //take first 2 words
+        .join(" ")
+        .trim();
+}
+
+//image loading
+async function fetchImageForFood(name) {
+
+    const search = generateSearchTerm(name);
+    
+    const url = `https://world.openfoodfacts.org/api/v2/search?categories_tags_en=${encodeURIComponent(search)}&page_size=10`;
+    
+    console.log("Searching OFF for:", search);
+
+
+    try{
+        const res = await fetch(url, {
+            headers: {
+                "User-Agent": "FoodIndex/1.0 (jonceski032@gmail.com)"
+            }
+         });
+
+         if(!res.ok) {
+            console.warn(`Image search failed: ${res.status} ${res.statusText}`);
+            return null;
+         }
+
+        const data = await res.json();
+
+        if((!data.products || data.products.length === 0)) {
+            return null;
+        }
+
+        const p = data.products[0];
+        console.log('OFF product for', search, p.product_name, p.image_front_url);
+
+        return (
+         p.image_medium_url ||
+         p.image_front_url ||
+         p.image_url ||
+         p.image_small_url ||
+         null   
+        ); 
+
+            
+        } catch (err) {
+        console.warn("Image fetch failed for:", name);
+    }
+    
+    return null;
 }
 
 
