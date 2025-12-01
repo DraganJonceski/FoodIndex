@@ -2,6 +2,41 @@
 // Food array
 let foods = [];
 
+const imageByKeyword = {
+    apple: "images/base/apple.avif",
+    banana: "images/base/banana.avif",
+    bread: "images/base/bread.avif",
+    rice: "images/base/rice.avif",
+    chicken: "images/base/chicken.avif",
+    milk: "images/base/milk.avif",
+    egg: "images/base/egg.avif",
+    yogurt: "images/base/yogurt.avif",
+    cookie: "images/base/cookie.avif",
+    pasta: "images/base/pasta.avif",
+    fish: "images/base/fish.avif",
+    nut: "images/base/nuts.avif",
+    almond: "images/base/nuts.avif",
+    peanut: "images/base/nuts.avif",
+    vegetable: "images/base/veggies.avif",
+    carrot: "images/base/veggies.avif",
+    broccoli: "images/base/veggies.avif",
+    
+}
+
+function pickImageForFood(name) {
+    const lower = name.toLowerCase();
+
+    for (const [key, url] of Object.entries(imageByKeyword)) {
+        if (lower.includes(key)) {
+            return url;
+        }
+    }
+
+    return "images/placeholder.avif";
+}
+
+
+
 // Render function
 function renderFoods(list){
     const resultsDiv = document.getElementById("results");
@@ -20,7 +55,7 @@ function renderFoods(list){
         card.className = "food-card";
 
         card.innerHTML = `
-        <img src="${food.imageURL || 'images/placeholder.avif'}" 
+        <img src="${food.imageURL || pickImageForFood(food.name)}" 
         alt="${food.name}">
         <h3>${food.name}</h3>
         <p><strong>${food.caloriesPer100g}</strong> kcal / 100g</p>
