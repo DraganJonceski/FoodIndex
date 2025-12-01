@@ -19,7 +19,7 @@ const imageByKeyword = {
     peanut: "images/base/nuts.avif",
     vegetable: "images/base/veggies.avif",
     carrot: "images/base/veggies.avif",
-    broccoli: "images/base/veggies.avif",
+    broccoli: "images/base/veggies.avif"
     
 }
 
@@ -73,7 +73,7 @@ function renderFoods(list){
 }
 
 // call function on page load
- loadTSV()(async data => {
+ loadTSV().then(async data => {
     foods = data;  // keep dataset in memory
 
     // Fetch images for foods
