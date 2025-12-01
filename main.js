@@ -73,7 +73,7 @@ function renderFoods(list){
 }
 
 // call function on page load
-loadTSV().then(async data => {
+ loadTSV()(async data => {
     foods = data;  // keep dataset in memory
 
     // Fetch images for foods
@@ -86,9 +86,15 @@ loadTSV().then(async data => {
     renderFoods([]) // start empty
 });
 
+const isGithubPages = location.hostname.endsWith("github.io");
+
 // dataset function
 async function loadTSV(){
-    const response = await fetch("data/opennutrition_foods.tsv");
+    const url = isGithubPages
+    ? "data/opennutrition_foods_small.tsv"
+    : "data/opennutrition_foods.tsv"; // local full dataset
+
+    const response = await fetch(url);
     const text = await response.text();
 
     const lines = text.split("\n").filter(line => line.trim() !== "");

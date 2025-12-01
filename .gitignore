@@ -13,11 +13,9 @@ node_modules/
 dist/
 out/
 
-# TSV datasets
+# whole TSV datasets
 data/opennutrition_foods.tsv
 opennutrition_foods.tsv
-data/*.tsv
-*.tsv
 
 # VSCode
 .vscode/
