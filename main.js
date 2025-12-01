@@ -97,21 +97,18 @@ function generateSearchTerm(foodName) {
         .toLowerCase()
         .replace(/,.*/, "")       //remove everything after comma
         .replace(/\(.*?\)/g, "")  //remove parentheses
-        .split(" ")              // split into words
-        .slice(0, 2)            //take first 2 words
-        .join(" ")
+        .split(' ')              // split into words
+        .slice(0, 3)            //take first 3 words
+        .join(' ')
         .trim();
 }
 
 //image loading
 async function fetchImageForFood(name) {
-
     const search = generateSearchTerm(name);
-    
-    const url = `https://world.openfoodfacts.org/api/v2/search?categories_tags_en=${encodeURIComponent(search)}&page_size=10`;
-    
-    console.log("Searching OFF for:", search);
+    const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(search)}&search_simple=1&page_size=50`;
 
+    console.log("Searching OpenFFoodFacts for:", search);
 
     try{
         const res = await fetch(url, {
@@ -125,49 +122,80 @@ async function fetchImageForFood(name) {
             return null;
          }
 
-        const data = await res.json();
 
+        const data = await res.json();
         if((!data.products || data.products.length === 0)) {
             return null;
         }
 
-        const p = data.products[0];
-        console.log('OFF product for', search, p.product_name, p.image_front_url);
+        // Normalize strings for comparison
+        const target = name.toLowerCase().replace(/,.*/, "").replace(/\(.*?\)/g,"").trim();
 
-        return (
-         p.image_medium_url ||
-         p.image_front_url ||
-         p.image_url ||
-         p.image_small_url ||
-         null   
-        ); 
+        const productWithImage = data.products.find(p=>
+            p.image_front_url || p.image_url || p.image_medium_url || p.image_small_url
+        );
 
-            
+        if(!productWithImage) return null;
+
+        const urlImage =
+          productWithImage.image_front_url ||
+          productWithImage.image_medium_url ||
+          productWithImage.image_url ||
+          productWithImage.image_small_url ||
+          null;   
+
+
+        console.log("Chosen image for", name, "->", urlImage);
+        return urlImage;
         } catch (err) {
-        console.warn("Image fetch failed for:", name);
+        console.warn("Image fetch failed for:", name, err);
+        return null;
     }
-    
-    return null;
 }
 
 
 
-//. search behavior
+// search behavior
 /** @type {HTMLInputElement} */
 const searchBar = document.getElementById("searchBar");
 
 searchBar.addEventListener("input", () => {
-    const text = searchBar.value.toLowerCase();
+  const text = searchBar.value.toLowerCase().trim();
 
-    if(text.length < 2) {
-        renderFoods([]); //show nothing
-        return;
+  if (text.length < 2) {
+    renderFoods([]); // show nothing
+    return;
+  }
+
+  const q = text;
+
+  // 1) Exact name match -> show only that food which is searched
+  const exact = foods.filter(f => f.name.toLowerCase() === q);
+  if (exact.length) {
+    renderFoods(exact.slice(0, 24));
+    return;
+  }
+
+  // 2) Otherwise, rank results: startsWith > wordMatch > contains
+  const startsWith = [];
+  const wordMatch = [];
+  const contains = [];
+
+  for (const food of foods) {
+    const name = food.name.toLowerCase();
+    const words = name.split(/\s+/);
+
+    if (name.startsWith(q)) {
+      startsWith.push(food);
+    } else if (words.includes(q)) {
+      wordMatch.push(food);
+    } else if (name.includes(q)) {
+      contains.push(food);
     }
+  }
 
-    const filtered = foods.filter(food =>
-        food.name.toLowerCase().includes(text)
-    );
-    
-        //limit to first 20 results
-renderFoods(filtered.slice(0,20));
+  const ordered = [...startsWith, ...wordMatch, ...contains];
+
+  // 3) Limit to first 24
+  renderFoods(ordered.slice(0, 24));
 });
