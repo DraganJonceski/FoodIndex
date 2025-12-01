@@ -15,6 +15,7 @@ out/
 
 # TSV datasets
 data/opennutrition_foods.tsv
+opennutrition_foods.tsv
 data/*.tsv
 *.tsv
 
