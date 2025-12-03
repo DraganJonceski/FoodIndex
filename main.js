@@ -21,8 +21,10 @@ const imageByKeyword = {
     peanut: "images/base/nuts.avif",
     vegetable: "images/base/veggies.avif",
     carrot: "images/base/veggies.avif",
-    broccoli: "images/base/veggies.avif"
-    
+    broccoli: "images/base/veggies.avif",
+    chocolate: "images/base/chocolate.avif",
+    //chocolate-bar: "images/base/bar.avif"
+    tomato: "images/base/tomato.avif"
 }
 
 function pickImageForFood(name) {
