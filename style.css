@@ -1,6 +1,6 @@
 #searchBar {
   padding: 6px;
-  border: navy solid 2px;
+  border: gray solid 2px;
   margin-top: 8px;
   margin-right: 16px;
   font-size: 17px;
@@ -65,5 +65,36 @@ footer a{
 
 footer a:hover {
   text-decoration: underline;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #fff;
+  max-width: 500px;
+  width: 90%;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  float: right;
+  cursor: pointer;
 }
 

@@ -4,6 +4,11 @@ let foods = [];
 
 const isGithubPages = location.hostname.endsWith("github.io");
 
+const modal = document.getElementById("foodModal");
+const modalTitle = document.getElementById("modalTitle");
+const modalCalories = document.getElementById("modalCalories");
+const modalClose = document.getElementById("modalClose");
+
 const imageByKeyword = {
     apple: "images/base/apple.avif",
     banana: "images/base/banana.avif",
@@ -39,6 +44,28 @@ function pickImageForFood(name) {
     return "images/placeholder.avif";
 }
 
+function openFoodModal(food) {
+    modalTitle.textContent = food.name;
+    modalCalories.textContent = `${food.caloriesPer100g} kcal / 100g`;
+
+    modalNutrients.innerHTML = `
+      <p><strong>Protein:</strong> ${food.protein} g</p>
+      <p><strong>Carbs:</strong> ${food.carbs} g</p>
+      <p><strong>Fat:</strong> ${food.fat} g</p>
+      `;
+
+      modal.classList.remove("hidden");
+}
+
+function closeFoodModal(){
+    modal.classList.add("hidden");
+}
+
+modalClose.addEventListener("click", closeFoodModal);
+modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeFoodModal(); // click outside closes
+});
+
 
 
 // Render function
@@ -62,13 +89,14 @@ function renderFoods(list){
         alt="${food.name}">
         <h3>${food.name}</h3>
         <p><strong>${food.caloriesPer100g}</strong> kcal / 100g</p>
-
         <div class="nutrients">
             <p>Protein: ${food.protein} g</p>
             <p>Carbs: ${food.carbs} g</p>
             <p>Fat: ${food.fat} g</p>
         </div>
         `;
+
+        card.addEventListener("click", () => openFoodModal(food));
 
         fragment.appendChild(card);
     });
