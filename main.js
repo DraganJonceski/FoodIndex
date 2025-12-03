@@ -55,9 +55,8 @@ function renderFoods(list){
     list.forEach(food => {
         const card = document.createElement("div");
         card.className = "food-card";
-
-        card.innerHTML = `
-        <img src="${food.imageURL || pickImageForFood(food.name)}" 
+        //comented out from img src: food.imageURL ||
+        card.innerHTML = `<img src="${pickImageForFood(food.name)}" 
         alt="${food.name}">
         <h3>${food.name}</h3>
         <p><strong>${food.caloriesPer100g}</strong> kcal / 100g</p>
