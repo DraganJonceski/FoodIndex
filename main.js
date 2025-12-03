@@ -4,12 +4,21 @@ let foods = [];
 
 const isGithubPages = location.hostname.endsWith("github.io");
 
+// Modal elements
 const modal = document.getElementById("foodModal");
 const modalTitle = document.getElementById("modalTitle");
 const modalCalories = document.getElementById("modalCalories");
 const modalNutrients = document.getElementById("modalNutrients");
 const modalClose = document.getElementById("modalClose");
 
+// Results + search
+const resultsDiv = document.getElementById("results");
+/** @type {HTMLInputElement} */
+const searchBar = document.getElementById("searchBar");
+
+const STORAGE_KEY = "foodIndex_search";
+
+// Keyword -> image map
 const imageByKeyword = {
     apple: "images/base/apple.avif",
     banana: "images/base/banana.avif",
@@ -31,7 +40,9 @@ const imageByKeyword = {
     chocolate: "images/base/chocolate.avif",
     //chocolate-bar: "images/base/bar.avif"
     tomato: "images/base/tomato.avif",
-    soda: "images/base/soda.avif"
+    soda: "images/base/soda.avif",
+    pizza: "images/base/pizza.avif",
+    hamburger: "images/base/hamburger.avif"
 }
 
 function pickImageForFood(name) {
@@ -51,16 +62,33 @@ function formatValue(value, unit = "g") {
     return `${Number(value.toFixed ? value.toFixed(2) : value)} ${unit}`;
 }
 
+function formatCaloriesShort(value){
+    if(value ===undefined || value == null || value === "?") return "?"
+    return Math.round(Number(value));
+}
+
+function formatMacroShort(value){
+    if(value ===undefined || value == null || value === "?") return "?"
+    return Number(value).toFixed(1);
+}
+
+function formatMacroDetailed(value, unit ="g") {
+    if(value ===undefined || value == null || value === "?") return "?"
+    return `${Number(value).toFixed(1)} ${unit}`;
+}
+
+
+// Modal open/close
 function openFoodModal(food) {
     modalTitle.textContent = food.name;
-    modalCalories.textContent = `${food.caloriesPer100g} kcal / 100g`;
+    modalCalories.textContent = `${Number(food.caloriesPer100g || 0).toFixed(0)} kcal / 100g`;
 
     const n = food.nutrients || {};
 
     modalNutrients.innerHTML = `
-      <p><strong>Protein:</strong> ${formatValue(food.protein, "g")}</p>
-      <p><strong>Carbs:</strong> ${formatValue(food.carbs, "g")}</p>
-      <p><strong>Fat:</strong> ${formatValue(food.fat, "g")}</p>
+      <p><strong>Protein:</strong> ${formatMacroDetailed(food.protein, "g")}</p>
+      <p><strong>Carbs:</strong> ${formatMacroDetailed(food.carbs, "g")}</p>
+      <p><strong>Fat:</strong> ${formatMacroDetailed(food.fat, "g")}</p>
       <hr>
       <p><strong>Fiber:</strong> ${formatValue(n.dietary_fiber, "g")}</p>
       <p><strong>Sugars:</strong> ${formatValue(n.total_sugars, "g")}</p>
@@ -71,10 +99,12 @@ function openFoodModal(food) {
       `;
 
       modal.classList.remove("hidden");
+      modalClose.focus(); // move focus to search
 }
 
 function closeFoodModal(){
     modal.classList.add("hidden");
+    searchBar.focus(); //return focus to search
 }
 
 modalClose.addEventListener("click", closeFoodModal);
@@ -82,11 +112,17 @@ modal.addEventListener("click", (e) => {
     if (e.target === modal) closeFoodModal(); // click outside closes
 });
 
+// Escape closes modal
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeFoodModal();
+    }
+})
 
 
-// Render function
+
+// Render cards
 function renderFoods(list, showEmptyMessage = false){
-    const resultsDiv = document.getElementById("results");
     resultsDiv.innerHTML = "";
 
     if(list.length === 0) {
@@ -106,11 +142,11 @@ function renderFoods(list, showEmptyMessage = false){
         card.innerHTML = `<img src="${pickImageForFood(food.name)}" 
         alt="${food.name}">
         <h3>${food.name}</h3>
-        <p><strong>${food.caloriesPer100g}</strong> kcal / 100g</p>
+        <p><strong>${formatCaloriesShort(food.caloriesPer100g,"")}</strong> kcal / 100g</p>
         <div class="nutrients">
-            <p>Protein: ${food.protein} g</p>
-            <p>Carbs: ${food.carbs} g</p>
-            <p>Fat: ${food.fat} g</p>
+            <p>Protein: ${formatMacroShort(food.protein)} g</p>
+            <p>Carbs: ${formatMacroShort(food.carbs)} g</p>
+            <p>Fat: ${formatMacroShort(food.fat)} g</p>
         </div>
         `;
 
@@ -120,22 +156,53 @@ function renderFoods(list, showEmptyMessage = false){
     });
     resultsDiv.appendChild(fragment);
 }
+// Search logic
+  function applySearch(text) {
+    const q=text.toLowerCase().trim();
 
-// call function on page load 
-loadTSV().then(async data => {
-    foods = data;  // keep dataset in memory
+    if (q.length<2) {
+        renderFoods([]);
+        return;
+    }
 
-    // Fetch images for foods commented out
-    /*for( const food of foods) {
-        food.imageURL= await fetchImageForFood(food.name);
-        console.log(food.imageURL);
-    }*/
+  // Exact match first
+  const exact = foods.filter(f => f.name.toLowerCase() === q);
+  if (exact.length) {
+    renderFoods(exact.slice(0, 24));
+    return;
+  }
 
-    console.log("Loaded foods:", foods.length);
-    renderFoods([]) // start empty
-});
+  const startsWith = [];
+  const wordMatch = [];
+  const contains = [];
 
-// dataset function
+  for (const food of foods) {
+    const name = food.name.toLowerCase();
+    const words = name.split(/\s+/);
+
+    if (name.startsWith(q)) {
+      startsWith.push(food);
+    } else if (words.includes(q)) {
+      wordMatch.push(food);
+    } else if (name.includes(q)) {
+      contains.push(food);
+    }
+  }
+
+  const ordered = [...startsWith, ...wordMatch, ...contains];
+
+  renderFoods(ordered.slice(0, 24), true);
+}
+
+searchBar.addEventListener("input", () => {
+  const text = searchBar.value;
+  localStorage.setItem(STORAGE_KEY,text);
+  // optional: quick "searching" state
+  // resultsDiv.innerHTML = "<p>Searching...</p>"
+  applySearch(text);
+  });
+
+  // Data loading
 async function loadTSV(){
     const url = isGithubPages
     ? "data/opennutrition_foods_small.tsv"
@@ -169,10 +236,10 @@ for (const line of lines) {
         id,
         name,
         category: type,
-        caloriesPer100g: nutrients.calories || "?",
-        protein: nutrients.protein || "?",
-        carbs: nutrients.carbohydrates || "?",
-        fat: nutrients.total_fat || "?",
+        caloriesPer100g: nutrients.calories ?? "?",
+        protein: nutrients.protein ?? "?",
+        carbs: nutrients.carbohydrates ?? "?",
+        fat: nutrients.total_fat ?? "?",
         nutrients // store full object
   //  imageName: "placeholder.avif"
     });
@@ -181,99 +248,19 @@ for (const line of lines) {
 return parsedFoods;
 }
 
+// Initialize on page load
+loadTSV().then(data => {
+    foods = data;  // keep dataset in memory    
+    console.log("Loaded foods:", foods.length);
 
-//image loading
-async function fetchImageForFood(name) {
-    const search = generateSearchTerm(name);
-    const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(search)}&search_simple=1&page_size=50`;
-
-    console.log("Searching OpenFFoodFacts for:", search);
-
-    try{
-        const res = await fetch(url, {
-            headers: {
-                "User-Agent": "FoodIndex/1.0 (jonceski032@gmail.com)"
-            }
-         });
-
-         if(!res.ok) {
-            console.warn(`Image search failed: ${res.status} ${res.statusText}`);
-            return null;
-         }
-
-
-        const data = await res.json();
-        if((!data.products || data.products.length === 0)) {
-            return null;
-        }
-
-        // Normalize strings for comparison
-/*
-        const productWithImage = data.products.find(p=>
-            p.image_front_url || p.image_url || p.image_medium_url || p.image_small_url
-        );
-
-        if(!productWithImage) return null;
-
-        const urlImage =
-          productWithImage.image_front_url ||
-          productWithImage.image_medium_url ||
-          productWithImage.image_url ||
-          productWithImage.image_small_url ||
-          null;   
-
-
-        console.log("Chosen image for", name, "->", urlImage);
-        return urlImage;
-        } catch (err) {
-        console.warn("Image fetch failed for:", name, err);
-        return null;
+    const last = localStorage.getItem(STORAGE_KEY) || "";
+    if (last) {
+        searchBar.value = last;
+        applySearch(last);
+    } else {
+        renderFoods([]);
     }
-}
-*/
-
-
-// search behavior
-/** @type {HTMLInputElement} */
-const searchBar = document.getElementById("searchBar");
-
-searchBar.addEventListener("input", () => {
-  const text = searchBar.value.toLowerCase().trim();
-
-  if (text.length < 2) {
-    renderFoods([]); // clear, no message
-    return;
-  }
-
-  const q = text;
-
-  // 1) Exact name match -> show only that food which is searched
-  const exact = foods.filter(f => f.name.toLowerCase() === q);
-  if (exact.length) {
-    renderFoods(exact.slice(0, 24));
-    return;
-  }
-
-  // 2) Otherwise, rank results: startsWith > wordMatch > contains
-  const startsWith = [];
-  const wordMatch = [];
-  const contains = [];
-
-  for (const food of foods) {
-    const name = food.name.toLowerCase();
-    const words = name.split(/\s+/);
-
-    if (name.startsWith(q)) {
-      startsWith.push(food);
-    } else if (words.includes(q)) {
-      wordMatch.push(food);
-    } else if (name.includes(q)) {
-      contains.push(food);
-    }
-  }
-
-  const ordered = [...startsWith, ...wordMatch, ...contains];
-
-  // 3) Limit to first 24
-  renderFoods(ordered.slice(0, 24), true); // show message if zero
+}).catch(err => {
+    console.error("Failed to load TSV", err);
+    resultsDiv.innerHTML = "<p>Failed to load food data.</p>"
 });
