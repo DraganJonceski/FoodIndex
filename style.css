@@ -98,3 +98,10 @@ footer a:hover {
   cursor: pointer;
 }
 
+#modalNutrients p {
+  margin: 4px 0;
+}
+#modalNutrients hr {
+  margin: 8px 0;
+}
+

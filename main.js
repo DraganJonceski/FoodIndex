@@ -30,7 +30,8 @@ const imageByKeyword = {
     broccoli: "images/base/veggies.avif",
     chocolate: "images/base/chocolate.avif",
     //chocolate-bar: "images/base/bar.avif"
-    tomato: "images/base/tomato.avif"
+    tomato: "images/base/tomato.avif",
+    soda: "images/base/soda.avif"
 }
 
 function pickImageForFood(name) {
@@ -41,18 +42,32 @@ function pickImageForFood(name) {
             return url;
         }
     }
-
     return "images/placeholder.avif";
+}
+
+function formatValue(value, unit = "g") {
+    if (value === undefined || value === null || value === "?") return "?";
+    // simple rounding
+    return `${Number(value.toFixed ? value.toFixed(2) : value)} ${unit}`;
 }
 
 function openFoodModal(food) {
     modalTitle.textContent = food.name;
     modalCalories.textContent = `${food.caloriesPer100g} kcal / 100g`;
 
+    const n = food.nutrients || {};
+
     modalNutrients.innerHTML = `
-      <p><strong>Protein:</strong> ${food.protein} g</p>
-      <p><strong>Carbs:</strong> ${food.carbs} g</p>
-      <p><strong>Fat:</strong> ${food.fat} g</p>
+      <p><strong>Protein:</strong> ${formatValue(food.protein, "g")}</p>
+      <p><strong>Carbs:</strong> ${formatValue(food.carbs, "g")}</p>
+      <p><strong>Fat:</strong> ${formatValue(food.fat, "g")}</p>
+      <hr>
+      <p><strong>Fiber:</strong> ${formatValue(n.dietary_fiber, "g")}</p>
+      <p><strong>Sugars:</strong> ${formatValue(n.total_sugars, "g")}</p>
+      <p><strong>Sodium:</strong> ${formatValue(n.sodium, "mg")}</p>
+      <p><strong>Calcium:</strong> ${formatValue(n.calcium, "mg")}</p>
+      <p><strong>Iron:</strong> ${formatValue(n.iron, "mg")}</p>
+      <p><strong>Vitamin C:</strong> ${formatValue(n.vitamin_c, "mg")}</p>
       `;
 
       modal.classList.remove("hidden");
@@ -70,12 +85,14 @@ modal.addEventListener("click", (e) => {
 
 
 // Render function
-function renderFoods(list){
+function renderFoods(list, showEmptyMessage = false){
     const resultsDiv = document.getElementById("results");
     resultsDiv.innerHTML = "";
 
     if(list.length === 0) {
+      if(showEmptyMessage) {
         resultsDiv.innerHTML = "<p>No results.</p>";
+      }
         return;
     }
 
@@ -156,6 +173,7 @@ for (const line of lines) {
         protein: nutrients.protein || "?",
         carbs: nutrients.carbohydrates || "?",
         fat: nutrients.total_fat || "?",
+        nutrients // store full object
   //  imageName: "placeholder.avif"
     });
 }
@@ -163,17 +181,6 @@ for (const line of lines) {
 return parsedFoods;
 }
 
-//helper imageSearch commented out for easier network load
-/* function generateSearchTerm(foodName) {
-    return foodName
-        .toLowerCase()
-        .replace(/,.*/ //, "")       //remove everything after comma
-/*        .replace(/\(.*?\)/g, "")  //remove parentheses
-        .split(' ')              // split into words
-        .slice(0, 3)            //take first 3 words
-        .join(' ')
-        .trim();
-}
 
 //image loading
 async function fetchImageForFood(name) {
@@ -234,7 +241,7 @@ searchBar.addEventListener("input", () => {
   const text = searchBar.value.toLowerCase().trim();
 
   if (text.length < 2) {
-    renderFoods([]); // show nothing
+    renderFoods([]); // clear, no message
     return;
   }
 
@@ -268,5 +275,5 @@ searchBar.addEventListener("input", () => {
   const ordered = [...startsWith, ...wordMatch, ...contains];
 
   // 3) Limit to first 24
-  renderFoods(ordered.slice(0, 24));
+  renderFoods(ordered.slice(0, 24), true); // show message if zero
 });
