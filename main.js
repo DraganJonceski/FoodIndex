@@ -7,6 +7,7 @@ const isGithubPages = location.hostname.endsWith("github.io");
 const modal = document.getElementById("foodModal");
 const modalTitle = document.getElementById("modalTitle");
 const modalCalories = document.getElementById("modalCalories");
+const modalNutrients = document.getElementById("modalNutrients");
 const modalClose = document.getElementById("modalClose");
 
 const imageByKeyword = {
@@ -107,11 +108,11 @@ function renderFoods(list){
 loadTSV().then(async data => {
     foods = data;  // keep dataset in memory
 
-    // Fetch images for foods
-    for( const food of foods) {
+    // Fetch images for foods commented out
+    /*for( const food of foods) {
         food.imageURL= await fetchImageForFood(food.name);
         console.log(food.imageURL);
-    }
+    }*/
 
     console.log("Loaded foods:", foods.length);
     renderFoods([]) // start empty
@@ -140,6 +141,7 @@ for (const line of lines) {
 
     let nutrients ={}
     try {
+      if(jsonString && jsonString.trim() !=="")
         nutrients = JSON.parse(jsonString);
     } catch (err) {
         console.error("JSON parsing error for:", name, err);
@@ -161,12 +163,12 @@ for (const line of lines) {
 return parsedFoods;
 }
 
-//helper imageSearch
-function generateSearchTerm(foodName) {
+//helper imageSearch commented out for easier network load
+/* function generateSearchTerm(foodName) {
     return foodName
         .toLowerCase()
-        .replace(/,.*/, "")       //remove everything after comma
-        .replace(/\(.*?\)/g, "")  //remove parentheses
+        .replace(/,.*/ //, "")       //remove everything after comma
+/*        .replace(/\(.*?\)/g, "")  //remove parentheses
         .split(' ')              // split into words
         .slice(0, 3)            //take first 3 words
         .join(' ')
@@ -199,8 +201,7 @@ async function fetchImageForFood(name) {
         }
 
         // Normalize strings for comparison
-        const target = name.toLowerCase().replace(/,.*/, "").replace(/\(.*?\)/g,"").trim();
-
+/*
         const productWithImage = data.products.find(p=>
             p.image_front_url || p.image_url || p.image_medium_url || p.image_small_url
         );
@@ -222,7 +223,7 @@ async function fetchImageForFood(name) {
         return null;
     }
 }
-
+*/
 
 
 // search behavior
